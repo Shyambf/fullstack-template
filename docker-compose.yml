@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  backend: 
+    build: 
+      context: .
+      dockerfile: backend/Dockerfile
+    ports: ["5001:8080"]
+    environment: 
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+    depends_on:
+     - mssql 
+    networks: [app-net] 
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_PID=Developer
+      - MSSQL_COLLATION=Cyrillic_General_CI_AS
+      - MSSQL_LCID=1049
+    ports:
+      - "1434:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+      - ./db/init:/usr/init
+    networks: [app-net]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5002:3000"
+    restart: always
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks: [app-net]
+
+volumes:
+  mssql_data:
+
+networks:
+  app-net:
