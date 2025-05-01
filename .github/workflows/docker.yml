@@ -1,4 +1,4 @@
-name: Docker Test Check
+name: Docker Compose Check
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - '*'
 
 jobs:
-  docker-test:
+  docker-compose-check:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,8 +19,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build test Docker image
-        run: docker build -f backend/Tests/Dockerfile -t backend-tests:latest .
+      - name: Validate docker-compose configuration
+        run: docker-compose config
 
-      - name: Run tests in Docker container
-        run: docker run --rm backend-tests:latest
+      - name: Build and start services via docker-compose
+        run: docker-compose up -d
+
+      - name: List running containers
+        run: docker-compose ps
+
+      - name: Stop and remove containers
+        run: docker-compose down
